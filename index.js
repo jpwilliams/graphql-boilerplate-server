@@ -9,6 +9,7 @@ const { schema, loaders } = require('./lib/loader')
 const bodyParser = require('body-parser')
 const { getDb, ObjectId } = require('./lib/singletons/mongo')
 const { pubsub } = require('./lib/singletons/pubsub')
+const { getContext } = require('./lib/context')
 
 // config
 const isProd = Boolean(process.env.NODE_ENV === 'production')
@@ -27,28 +28,11 @@ api.use((req, res, next) => {
 
 // set up GraphQL endpoint
 api.use('/graphql', bodyParser.json(), graphqlExpress(async (req, res) => {
-  // the context object contains anything you'd like your
-  // resolvers to have access to.
-  //
-  // here we add loaders, a MongoDB connection, an ObjectId
-  // helper and pubsub, used for Subscriptions.
-  //
-  // add anything here that you need in multiple resolvers
-  const context = {
-    db: await getDb('base'),
-    ObjectId,
-    pubsub
-  }
-
-  context.loaders = Object.keys(loaders).reduce((map, key) => {
-    map[key] = loaders[key](context)
-
-    return map
-  }, {})
-
   return {
     schema: schema,
-    context
+    context: await getContext({
+      user: res.locals.user
+    })
   }
 }))
 
@@ -75,19 +59,10 @@ SubscriptionServer.create({
   execute,
   subscribe,
   onOperation: async (_message, params, _webSocket) => {
-    const context = {
-      db: await getDb('base'),
-      ObjectId,
-      pubsub
+    return {
+      ...params,
+      context: await getContext()
     }
-
-    context.loaders = Object.keys(loaders).reduce((map, key) => {
-      map[key] = loaders[key](context)
-
-      return map
-    }, {})
-
-    return { ...params, context }
   }
 }, {
   server: graphQLServer,
