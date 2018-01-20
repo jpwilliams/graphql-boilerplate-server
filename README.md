@@ -28,10 +28,14 @@ Head on over to [http://localhost:4000/graphiql](http://localhost:4000/graphiql)
 
 # Features
 
+- GraphiQL IDE for development
+- Context-aware middleware
+- Support for Data Loaders
+- MongoDB singleton
 - Easy addition/removal of types, queries, mutations and subscriptions
-- Redis subscriptions built in
-- More stuff I should list...
-- It does a lot. I swear.
+- Can add types as a single file or split them out into multiple files/folders; the loader takes care of putting everything in the right place (_I'll put in an example for this_)
+- Redis pubsub subscriptions built in
+- ...
 
 # Adding stuff
 
